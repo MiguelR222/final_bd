@@ -15,7 +15,7 @@ const globalForKnex = globalThis as unknown as {
   knex: ReturnType<typeof knex> | undefined;
 };
 
-const db = knex(config);
+const db = globalForKnex.knex ?? knex(config);
 
 if (process.env.NODE_ENV !== "production") globalForKnex.knex = db;
 
