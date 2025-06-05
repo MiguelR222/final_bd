@@ -3,7 +3,7 @@ import { ApolloServer } from "@apollo/server";
 import { NextRequest } from "next/server";
 import { resolvers } from "@/graphql/resolvers";
 import { typeDefs } from "@/graphql/typeDefs";
-import db from "@/lib/db"; // Your knex instance
+import db from "@/lib/db";
 
 export type Context = {
   db: typeof db;
