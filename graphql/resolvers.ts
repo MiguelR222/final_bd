@@ -92,8 +92,6 @@ export const resolvers = {
           id_user: user.id_user,
           username: user.username,
           email: user.email,
-          email_verified: user.email_verified,
-          id_provider: user.id_provider,
         },
         token,
       };

@@ -7,8 +7,6 @@ export const LOGIN = gql`
         id_user
         username
         email
-        email_verified
-        id_provider
         visible
       }
       token
