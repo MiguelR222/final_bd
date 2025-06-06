@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useQuery } from "@apollo/client";
 import { ME } from "@/queries";
 import Link from "next/link";

@@ -1,8 +1,5 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
-import { ME } from "@/queries";
-
 export default function Home() {
 
   return (

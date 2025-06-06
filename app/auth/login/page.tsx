@@ -82,7 +82,7 @@ export default function LoginPage() {
         </form>
         <Button variant="link" className="w-full mt-4">
           <Link href="/auth/register" className="text-sm text-blue-500 hover:underline">
-            Don't have an account? Register
+            Do not have an account? Register
           </Link>
         </Button>
       </CardContent>
