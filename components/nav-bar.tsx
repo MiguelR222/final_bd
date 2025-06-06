@@ -36,8 +36,6 @@ export function Navbar() {
   };
 
   const { data: userData } = useQuery(ME);
-  console.log("User data:", userData?.me.username);
-
   useEffect(() => {
     if (userData?.me) {
       setUser({

@@ -34,12 +34,6 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
     };
   });
 
-  useEffect(() => {
-    if (token) {
-      console.log("Auth token:", token);
-    }
-  }, [token]);
-
   const client = new ApolloClient({
     link: authLink.concat(httpLink),
     cache: new InMemoryCache(),

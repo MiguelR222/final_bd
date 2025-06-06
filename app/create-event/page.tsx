@@ -34,7 +34,6 @@ export default function CreateEventPage() {
   } = useQuery(ME);
   const user_id = userData?.me?.id_user;
 
-  console.log("User ID:", user_id);
 
   const [formData, setFormData] = useState({
     event_name: "",
@@ -58,7 +57,6 @@ export default function CreateEventPage() {
         type: "success",
         message: "Event created successfully!",
       });
-      console.log("Event created:", data);
       setTimeout(() => {
         router.push("/my-events");
       }, 2000);

@@ -112,7 +112,6 @@ export default function MyEventsPage() {
   }, [router]);
 
   const { data: userData } = useQuery(ME);
-  console.log("User data:", userData?.me.username);
 
   const username = userData?.me.username;
 
@@ -128,9 +127,6 @@ export default function MyEventsPage() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
-  console.log(eventsData);
-  console.log("Events data:", eventsData?.getEventsByUserName);
 
   const events = eventsData?.getEventsByUserName || [];
 

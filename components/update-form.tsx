@@ -47,15 +47,12 @@ export default function UpdateForm() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
-  console.log("UpdateForm ID:", id);
-
   const {
     data: userData,
     loading: userLoading,
     error: userError,
   } = useQuery(ME);
   const user_id = userData?.me?.id_user;
-  console.log("User ID:", user_id);
 
   const {
     loading: eventLoading,
@@ -66,7 +63,6 @@ export default function UpdateForm() {
     skip: !user_id || !id,
   });
 
-  console.log("Events data:", eventsData);
   const event: Event = eventsData?.getEventById;
 
   const [formData, setFormData] = useState({
@@ -87,7 +83,6 @@ export default function UpdateForm() {
 
   const [updateEvent, { loading: updateLoading }] = useMutation(UPDATE_EVENT, {
     onCompleted: (data) => {
-      console.log("Mutation completed with data:", data);
       try {
         if (data && typeof data === "object") {
           setNotification({
@@ -166,7 +161,6 @@ export default function UpdateForm() {
     }
 
     try {
-      console.log("Submitting form data:", formData);
 
       const mutationVariables = {
         idEvent: Number(event.id_event),
@@ -179,14 +173,11 @@ export default function UpdateForm() {
         idCategory: Number(formData.id_category),
         idEventStatus: Number(formData.id_event_status),
         idUser: Number(user_id),
-      };
-
-      console.log("Mutation variables:", mutationVariables);
+      };;
 
       const result = await updateEvent({
         variables: mutationVariables,
       });
-      console.log("Mutation result:", result);
     } catch (error) {
       console.error("Submit error:", error);
     }

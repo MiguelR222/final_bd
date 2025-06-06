@@ -17,7 +17,6 @@ export const resolvers = {
   Query: {
     me: async (_: any, __: any, context: Context) => {
       const userFromToken = context.user;
-      console.log("User from token:", userFromToken);
       if (!userFromToken) {
         throw new Error("Not authenticated");
       }
@@ -38,11 +37,9 @@ export const resolvers = {
       { username }: { username: string },
       context: Context,
     ) => {
-      console.log("Fetching events for user:", username);
       const events = await context.db.raw(
         `call sp_get_events_by_user('${username}')`,
       );
-      console.log("eventos", events[0][0]);
       return events[0][0];
     },
     getEvents: async (_parent: any, _args: any, context: Context) => {
@@ -73,8 +70,6 @@ export const resolvers = {
       context: Context,
     ) => {
       const user = await context.db("users").where({ email }).first();
-
-      console.log("User found:", user);
 
       if (!user) {
         throw new Error("User not found");
@@ -178,7 +173,6 @@ export const resolvers = {
         .db("events")
         .where({ id_event })
         .first();
-      console.log("Created event:", createdEvent);
       return createdEvent;
     },
 

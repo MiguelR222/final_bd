@@ -30,11 +30,8 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("trying to login with:", { email, password });
     try {
       const { data } = await login({ variables: { email, password } });
-      console.log("trying to login with:", { email, password });
-
       if (data?.login?.token) {
         localStorage.setItem("token", data.login.token);
         window.location.reload();
