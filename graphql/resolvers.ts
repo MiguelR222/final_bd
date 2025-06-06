@@ -46,7 +46,7 @@ export const resolvers = {
       return events[0][0];
     },
     getEvents: async (_parent: any, _args: any, context: Context) => {
-      return await context.db("events");
+      return await context.db("vw_events_detailed");
     },
     getUsers: async (_parent: any, _args: any, context: Context) => {
       return await context.db("users");
@@ -74,7 +74,7 @@ export const resolvers = {
     ) => {
       const user = await context.db("users").where({ email }).first();
 
-      console.log("User found:", user.password);
+      console.log("User found:", user);
 
       if (!user) {
         throw new Error("User not found");

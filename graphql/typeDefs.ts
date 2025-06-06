@@ -1,7 +1,7 @@
 export const typeDefs = `#graphql 
     type Query {
         me: User
-        getEvents: [Event]
+        getEvents: [ExtendedEvent]
         getUsers: [User]
         getEventById(p_id_event: Int!, p_id_user: Int!): Event
         getEventsByUserName(username: String!): [ExtendedEvent]

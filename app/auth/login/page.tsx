@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -36,7 +37,7 @@ export default function LoginPage() {
 
       if (data?.login?.token) {
         localStorage.setItem("token", data.login.token);
-        router.push("/");
+        window.location.reload();
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -79,6 +80,11 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
+        <Button variant="link" className="w-full mt-4">
+          <Link href="/auth/register" className="text-sm text-blue-500 hover:underline">
+            Don't have an account? Register
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

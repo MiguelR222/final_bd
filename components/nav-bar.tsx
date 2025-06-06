@@ -12,13 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, Settings } from "lucide-react";
+import { useQuery } from "@apollo/client";
+import { ME } from "@/queries";
+import Link from "next/link";
 
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john@example.com",
+    name: "",
+    email: "",
   });
   const router = useRouter();
 
@@ -33,20 +35,32 @@ export function Navbar() {
     router.push("/auth/login");
   };
 
+  const { data: userData } = useQuery(ME);
+  console.log("User data:", userData?.me.username);
+
+  useEffect(() => {
+    if (userData?.me) {
+      setUser({
+        name: userData.me.username,
+        email: userData.me.email,
+      });
+    }
+  }, [userData]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setIsLoggedIn(false); // ✅ update state when logging out
+    setIsLoggedIn(false);
+    window.location.reload();
   };
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-6">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold">Your App</h1>
+            <Link href="/" className="text-xl font-bold">Live It</Link>
           </div>
-
-          <div className="hidden md:flex items-center space-x-6">
+          {isLoggedIn && (          <div className="hidden md:flex items-center space-x-6">
             <a
               href="/my-events"
               className="text-sm font-medium hover:text-primary transition-colors"
@@ -54,7 +68,7 @@ export function Navbar() {
               Your Events
             </a>
             <a
-              href="/events"
+              href="/feed"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
               Events
@@ -65,7 +79,8 @@ export function Navbar() {
             >
               About
             </a>
-          </div>
+          </div>)}
+
 
           <div className="flex items-center space-x-4">
             {!isLoggedIn ? (
@@ -97,15 +112,6 @@ export function Navbar() {
                       </p>
                     </div>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />

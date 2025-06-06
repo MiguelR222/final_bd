@@ -1,7 +1,6 @@
 "use client";
-import { useMutation, useQuery } from "@apollo/client";
-import { GET_EVENTS_BY_USERNAME, ME } from "@/queries";
-import { useRouter } from "next/navigation";
+import { useQuery } from "@apollo/client";
+import { GET_EVENTS} from "@/queries";
 import {
   Card,
   CardContent,
@@ -12,9 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, MapPinIcon, UserIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DELETE_EVENT } from "@/mutations";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface Event {
   id_event: number;
@@ -29,12 +27,6 @@ interface Event {
   status_description: string;
 }
 function EventCard({ event }: { event: Event }) {
-  const router = useRouter();
-  const [deleteEvent] = useMutation(DELETE_EVENT);
-
-  const handleDeleteEvent = (eventId: number) => () => {
-    deleteEvent({ variables: { idEvent: eventId } });
-  };
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
@@ -75,18 +67,6 @@ function EventCard({ event }: { event: Event }) {
         <Badge variant="outline" className="mr-2">
           {event.category}
         </Badge>
-        <Button
-          onClick={handleDeleteEvent(event.id_event)}
-          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-        >
-          Delete
-        </Button>
-        <Button
-          onClick={() => router.push(`/update-event?id=${event.id_event}`)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-        >
-          Update Event
-        </Button>
       </CardFooter>
     </Card>
   );
@@ -102,41 +82,33 @@ function EventGrid({ events }: { events: Event[] }) {
   );
 }
 
-export default function MyEventsPage() {
-  const router = useRouter();
+export default function EventsPage() {
+    const router = useRouter();
+  const {
+    loading,
+    error,
+    data: eventsData,
+  } = useQuery(GET_EVENTS);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/auth/login");
     }
   }, [router]);
-
-  const { data: userData } = useQuery(ME);
-  console.log("User data:", userData?.me.username);
-
-  const username = userData?.me.username;
-
-  const {
-    loading,
-    error,
-    data: eventsData,
-  } = useQuery(GET_EVENTS_BY_USERNAME, {
-    variables: { username },
-    skip: !username,
-  });
-
+        
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   console.log(eventsData);
-  console.log("Events data:", eventsData?.getEventsByUserName);
+  console.log("Events data:", eventsData?.getEvents);
 
-  const events = eventsData?.getEventsByUserName || [];
+  const events = eventsData?.getEvents || [];
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">My Events</h1>
+      <h1 className="text-3xl font-bold mb-6">All Events</h1>
       <EventGrid events={events} />
     </div>
   );
