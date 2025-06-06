@@ -173,9 +173,8 @@ export default function UpdateForm() {
         idCategory: Number(formData.id_category),
         idEventStatus: Number(formData.id_event_status),
         idUser: Number(user_id),
-      };;
-
-      const result = await updateEvent({
+      };
+      await updateEvent({
         variables: mutationVariables,
       });
     } catch (error) {

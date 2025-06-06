@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, MapPinIcon, UserIcon } from "lucide-react";
+import { CalendarIcon, Loader2, MapPinIcon, UserIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -98,7 +98,7 @@ export default function EventsPage() {
   }, [router]);
         
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <div className="flex h-screen items-center justify-center"> <Loader2 className="h-8 w-8 animate-spin" /></div>
   if (error) return <p>Error: {error.message}</p>;
 
   const events = eventsData?.getEvents || [];

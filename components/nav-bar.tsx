@@ -58,28 +58,34 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             <Link href="/" className="text-xl font-bold">Live It</Link>
           </div>
-          {isLoggedIn && (          <div className="hidden md:flex items-center space-x-6">
-            <a
-              href="/my-events"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Your Events
-            </a>
-            <a
-              href="/feed"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Events
-            </a>
-            <a
-              href="/about"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              About
-            </a>
-          </div>)}
-
-
+          {isLoggedIn && (
+            < div className="hidden md:flex items-center space-x-6">
+              <Link
+                href="/my-events"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                Your Events
+              </Link>
+              <Link
+                href="/feed"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                All Events
+              </Link>
+              <Link
+                href="/create-event"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                Post Event
+              </Link>
+              <Link
+                href="/about"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                About
+              </Link>
+            </div>
+          )}
           <div className="flex items-center space-x-4">
             {!isLoggedIn ? (
               <Button onClick={handleLogin} variant="default">

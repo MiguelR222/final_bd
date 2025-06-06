@@ -52,7 +52,7 @@ export default function CreateEventPage() {
   }>({ type: null, message: "" });
 
   const [createEvent, { loading: createLoading }] = useMutation(CREATE_EVENT, {
-    onCompleted: (data) => {
+    onCompleted: () => {
       setNotification({
         type: "success",
         message: "Event created successfully!",
