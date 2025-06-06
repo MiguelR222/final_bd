@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true
+    ignoreBuildErrors: true,
   },
   webpack: (config) => {
     config.externals.push("oracledb", "pg-query-stream", "pg");
@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       (warning: any) =>
         typeof warning.message === "string" &&
         warning.message.includes(
-          "Critical dependency: the request of a dependency is an expression"
+          "Critical dependency: the request of a dependency is an expression",
         ),
     ];
     return config;

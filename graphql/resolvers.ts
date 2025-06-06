@@ -1,139 +1,283 @@
 import { Context } from "@/app/api/graphql/route";
+import bcrypt from "bcrypt";
+import { signJwt } from "@/lib/jwt";
+
+interface AuthPayload {
+  email: string;
+  password: string;
+}
+
+interface RegisterArgs {
+  username: string;
+  email: string;
+  password: string;
+}
 
 export const resolvers = {
   Query: {
+    me: async (_: any, __: any, context: Context) => {
+      const userFromToken = context.user;
+      console.log("User from token:", userFromToken);
+      if (!userFromToken) {
+        throw new Error("Not authenticated");
+      }
+
+      const user = await context
+        .db("users")
+        .where({ id_user: userFromToken.id_user })
+        .first();
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      return user;
+    },
+    getEventsByUserName: async (
+      _parent: any,
+      { username }: { username: string },
+      context: Context,
+    ) => {
+      console.log("Fetching events for user:", username);
+      const events = await context.db.raw(
+        `call sp_get_events_by_user('${username}')`,
+      );
+      console.log("eventos", events[0][0]);
+      return events[0][0];
+    },
     getEvents: async (_parent: any, _args: any, context: Context) => {
       return await context.db("events");
     },
     getUsers: async (_parent: any, _args: any, context: Context) => {
       return await context.db("users");
     },
-    getCities: async (_parent: any, _args: any, context: Context) => {
-      return await context.db("city").join("state", "city.id_state", "state.id_state");
-    },
-    getStates: async (_parent: any, _args: any, context: Context) => {
-      return await context.db("state");
-    },
-    getEventById: async (_parent: any, { id_event }: { id_event: number }, context: Context) => {
-      const event = await context.db("event")
-        .where({ id_event })
-        .first()
-        .leftJoin("user", "event.id_user", "user.id_user")
-        .leftJoin("city", "event.id_city", "city.id_city")
-        .leftJoin("state", "city.id_state", "state.id_state")
-        .leftJoin("event_status", "event.id_event_status", "event_status.id_event_status");
+    getEventById: async (
+      _parent: any,
+      { p_id_event, p_id_user }: { p_id_event: number; p_id_user: number },
+      context: Context,
+    ) => {
+      const event = await context.db.raw(
+        `call sp_get_detailed_event(${p_id_event}, ${p_id_user})`,
+      );
 
       if (!event) throw new Error("Event not found");
 
-      const categories = await context.db("event_category")
-        .join("category", "event_category.id_category", "category.id_category")
-        .where({ id_event })
-        .select("category.category_name");
-
-      return {
-        ...event,
-        categories: categories.map(c => c.category_name).join(", "),
-        status_description: event.status_description,
-        username: event.username,
-        city: event.city_name,
-      };
+      return event[0][0][0];
     },
   },
 
   Mutation: {
-    createEvent: async (_parent: any, args: any, context: Context) => {
-      const [event] = await context.db("event").insert({
-        event_name: args.event_name,
-        description: args.description,
-        event_start: new Date(args.event_start),
-        event_end: new Date(args.event_end),
-        img_url: args.img_url,
-        id_event_status: args.id_event_status,
-        id_user: args.id_user,
-        id_city: args.id_city,
-      }).returning("*");
+    login: async (
+      _: any,
+      { email, password }: AuthPayload,
+      context: Context,
+    ) => {
+      const user = await context.db("users").where({ email }).first();
 
-      if (args.categoryIds?.length) {
-        const categories = args.categoryIds.map((id: number) => ({
-          id_event: event.id_event,
-          id_category: id,
-        }));
-        await context.db("event_category").insert(categories);
+      console.log("User found:", user.password);
+
+      if (!user) {
+        throw new Error("User not found");
       }
 
-      return event;
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        throw new Error("Invalid password");
+      }
+
+      const token = signJwt({ id_user: user.id_user, email: user.email });
+
+      return {
+        user: {
+          id_user: user.id_user,
+          username: user.username,
+          email: user.email,
+          email_verified: user.email_verified,
+          id_provider: user.id_provider,
+        },
+        token,
+      };
     },
+    register: async (
+      _: any,
+      { username, email, password }: RegisterArgs,
+      context: Context,
+    ) => {
+      const existingEmail = await context.db("users").where({ email }).first();
 
-    updateEvent: async (_parent: any, args: any, context: Context) => {
-      const { id_event, categoryIds, ...data } = args;
+      if (existingEmail) {
+        throw new Error("Email is already registered");
+      }
 
-      if (data.event_start) data.event_start = new Date(data.event_start);
-      if (data.event_end) data.event_end = new Date(data.event_end);
+      const existingUsername = await context
+        .db("users")
+        .where({ username })
+        .first();
 
-      const [event] = await context.db("event")
+      if (existingUsername) {
+        throw new Error("Username is already taken");
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await context.db("users").insert({
+        username,
+        email,
+        password: hashedPassword
+      });
+
+      const user = await context.db("users").where({ email }).first();
+
+      const token = signJwt({ id_user: user.id_user, email });
+
+      return {
+        user: {
+          id_user: user.id_user,
+          username: user.username,
+          email: user.email
+        },
+        token,
+      };
+    },
+    createEvent: async (
+      _: any,
+      {
+        event_name,
+        description,
+        event_start,
+        event_end,
+        img_url,
+        id_event_status,
+        id_user,
+        id_category,
+        location,
+      }: {
+        event_name: string;
+        description: string;
+        event_start: string;
+        event_end: string;
+        img_url: string;
+        id_event_status: number;
+        id_user: number;
+        id_category: number;
+        location: string;
+      },
+      context: Context,
+    ) => {
+      const [id_event] = await context.db("events").insert({
+        event_name,
+        description,
+        event_start,
+        event_end,
+        img_url,
+        id_event_status,
+        id_user,
+        id_category,
+        location,
+      });
+
+      const createdEvent = await context
+        .db("events")
         .where({ id_event })
-        .update(data)
-        .returning("*");
+        .first();
+      console.log("Created event:", createdEvent);
+      return createdEvent;
+    },
 
-      if (categoryIds) {
-        await context.db("event_category").where({ id_event }).del();
-        const categories = categoryIds.map((id: number) => ({
-          id_event,
-          id_category: id,
-        }));
-        await context.db("event_category").insert(categories);
+    updateEvent: async (
+      _: any,
+      {
+        id_event,
+        event_name,
+        description,
+        event_start,
+        event_end,
+        img_url,
+        id_event_status,
+        id_user,
+        id_category,
+        location,
+      }: {
+        id_event: number;
+        event_name: string;
+        description: string;
+        event_start: string;
+        event_end: string;
+        img_url: string;
+        id_event_status: number;
+        id_user: number;
+        id_category: number;
+        location: string;
+      },
+      context: Context,
+    ) => {
+      const eventExists = await context
+        .db("events")
+        .where({ id_event })
+        .first();
+
+      if (!eventExists) {
+        throw new Error(`Event with id ${id_event} not found.`);
       }
 
-      return event;
+      await context.db("events").where({ id_event }).update({
+        event_name,
+        description,
+        event_start,
+        event_end,
+        img_url,
+        id_event_status,
+        id_user,
+        id_category,
+        location,
+      });
+
+      const updatedEvent = await context
+        .db("events")
+        .where({ id_event })
+        .first();
+
+      return updatedEvent;
     },
 
-    deleteEvent: async (_parent: any, { id_event }: { id_event: number }, context: Context) => {
-      return await context.db("event").where({ id_event }).del();
+    deleteEvent: async (
+      _: any,
+      { id_event }: { id_event: number },
+      context: Context,
+    ) => {
+      await context.db("events").where({ id_event }).update({ visible: 0 });
+
+      const deletedEvent = await context
+        .db("events")
+        .where({ id_event })
+        .first();
+      if (!deletedEvent) {
+        throw new Error(`Event with id ${id_event} not found.`);
+      }
+      return deletedEvent
     },
 
-    addUser: async (_parent: any, args: any, context: Context) => {
-      const [user] = await context.db("user").insert(args).returning("*");
+    updateUser: async (_: any,{ id_user, username }:{id_user: number, username : string}, context: Context) => {
+      await context
+        .db("users")
+        .where({ id_user })
+        .update({username})
+      const user = await context.db("users").where({ id_user }).first();
       return user;
     },
 
-    updateUser: async (_parent: any, args: any, context: Context) => {
-      const { id_user, ...data } = args;
-      const [user] = await context.db("user").where({ id_user }).update(data).returning("*");
-      return user;
-    },
+    deleteUser: async (
+      _parent: any,
+      { id_user }: { id_user: number },
+      context: Context,
+    ) => {
+      await context.db("users").where({ id_user }).update({ visible: 0 });
 
-    deleteUser: async (_parent: any, { id_user }: { id_user: number }, context: Context) => {
-      return await context.db("user").where({ id_user }).del();
-    },
-
-    addCity: async (_parent: any, args: any, context: Context) => {
-      const [city] = await context.db("city").insert(args).returning("*");
-      return city;
-    },
-
-    updateCity: async (_parent: any, args: any, context: Context) => {
-      const { id_city, ...data } = args;
-      const [city] = await context.db("city").where({ id_city }).update(data).returning("*");
-      return city;
-    },
-
-    deleteCity: async (_parent: any, { id_city }: { id_city: number }, context: Context) => {
-      return await context.db("city").where({ id_city }).del();
-    },
-
-    addState: async (_parent: any, args: any, context: Context) => {
-      const [state] = await context.db("state").insert(args).returning("*");
-      return state;
-    },
-
-    updateState: async (_parent: any, args: any, context: Context) => {
-      const { id_state, ...data } = args;
-      const [state] = await context.db("state").where({ id_state }).update(data).returning("*");
-      return state;
-    },
-
-    deleteState: async (_parent: any, { id_state }: { id_state: number }, context: Context) => {
-      return await context.db("state").where({ id_state }).del();
+      const deletedUser = await context.db("users").where({ id_user }).first();
+      if (!deletedUser) {
+        throw new Error(`User with id ${id_user} not found.`);
+      }
+      return deletedUser
     },
   },
 };

@@ -1,10 +1,10 @@
 export const typeDefs = `#graphql 
     type Query {
+        me: User
         getEvents: [Event]
         getUsers: [User]
-        getCities: [City]
-        getStates: [State]
-        getEventById(id_event: Int!): ExtendedEvent
+        getEventById(p_id_event: Int!, p_id_user: Int!): Event
+        getEventsByUserName(username: String!): [ExtendedEvent]
     }
     
     type Event {
@@ -16,28 +16,16 @@ export const typeDefs = `#graphql
         img_url: String!
         id_event_status: Int!
         id_user: Int!
-        id_city: Int!
+        id_category: Int!
+        location: String!
+        visible: Boolean
     }
 
     type User {
         id_user: Int!
         username: String
         email: String
-        password: String
-        email_verified: Boolean
-        id_provider: Int
-    }
-
-    type City {
-        id_city: Int!
-        city_name: String
-        id_state: Int
-        state: State
-    }
-
-    type State {
-        id_state: Int!
-        state_name: String
+        visible: Boolean
     }
 
     type EventStatus {
@@ -49,7 +37,12 @@ export const typeDefs = `#graphql
         id_category: Int!
         category_name: String!
     }
-    
+
+    type AuthPayload {
+        user: User
+        token: String
+    }
+
     type ExtendedEvent {
         id_event: Int!
         event_name: String!
@@ -57,13 +50,28 @@ export const typeDefs = `#graphql
         event_start: String!
         event_end: String!
         img_url: String!
-        categories: String!
+        category: String!
         status_description: String!
         username: String!
-        city: String!
+        location: String!
+    }
+    
+    type CreatedEvent {
+            event_name: String!
+            description: String!
+            event_start: String!
+            event_end: String!
+            img_url: String!
+            id_event_status: Int!
+            id_user: Int!
+            id_category: Int!
+            location: String!
     }
 
     type Mutation {
+        register(username: String!, email: String!, password: String!): AuthPayload
+        login(email: String!, password: String!): AuthPayload
+
         createEvent(
             event_name: String!
             description: String!
@@ -72,34 +80,27 @@ export const typeDefs = `#graphql
             img_url: String!
             id_event_status: Int!
             id_user: Int!
-            id_city: Int!
-            categoryIds: [Int!]
+            id_category: Int!
+            location: String!
         ): Event
         
         updateEvent(
             id_event: Int!
-            event_name: String
-            description: String
-            event_start: String
-            event_end: String
-            img_url: String
-            id_event_status: Int
-            id_city: Int
-            categoryIds: [Int!]
+            event_name: String!
+            description: String!
+            event_start: String!
+            event_end: String!
+            img_url: String!
+            id_event_status: Int!
+            id_user: Int!
+            id_category: Int!
+            location: String!
         ): Event
         
         deleteEvent(id_event: Int!): Event
 
-        addUser(username: String, email: String, password: String, email_verified: Boolean, id_provider: Int): User
-        updateUser(id_user: Int!, username: String, email: String, password: String, email_verified: Boolean, id_provider: Int): User
+        updateUser(id_user: Int!, username: String): User
         deleteUser(id_user: Int!): User
 
-        addCity(city_name: String, id_state: Int): City
-        updateCity(id_city: Int!, city_name: String, id_state: Int): City
-        deleteCity(id_city: Int!): City
-
-        addState(state_name: String): State
-        updateState(id_state: Int!, state_name: String): State
-        deleteState(id_state: Int!): State
     }
 `;
