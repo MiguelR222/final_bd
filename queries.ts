@@ -21,8 +21,6 @@ export const ME = gql`
       id_user
       username
       email
-      email_verified
-      id_provider
     }
   }
 `;
