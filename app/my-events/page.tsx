@@ -34,6 +34,8 @@ function EventCard({ event }: { event: Event }) {
 
   const handleDeleteEvent = (eventId: number) => () => {
     deleteEvent({ variables: { idEvent: eventId } });
+    alert("Event deleted successfully!");
+    window.location.reload();
   };
   return (
     <Card className="overflow-hidden">

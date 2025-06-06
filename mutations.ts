@@ -67,7 +67,7 @@ export const UPDATE_EVENT = gql`
 `;
 
 export const DELETE_EVENT = gql`
-  mutation DeleteEvent($idEvent: Int!) {
+  mutation Mutation($idEvent: Int!) {
     deleteEvent(id_event: $idEvent) {
       id_event
       event_name
